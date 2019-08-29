@@ -12,10 +12,13 @@
 #include "esp_system.h"
 #include "esp_spi_flash.h"
 
+void task_display(void *ignore);
 
 void app_main()
 {
     printf("Hello world!\n");
+
+    xTaskCreate(&task_display, "task_display", 8048, NULL, 5, NULL);
 
     /* Print chip information */
     esp_chip_info_t chip_info;
