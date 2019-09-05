@@ -17,13 +17,13 @@
 #include "sdkconfig.h"
 #include "u8g2_esp32_hal.h"
 
-// SDA - GPIO21
-#define PIN_SDA 21
+// SDA - PIN
+#define PIN_SDA CONFIG_MONO128x64_I2C_SDA_PIN // 5 //21
 
-// SCL - GPIO22
-#define PIN_SCL 22
+// SCL - PIN
+#define PIN_SCL CONFIG_MONO128x64_I2C_SCL_PIN // 4 // 22
 
-static const char *TAG = "display";
+static const char *TAG = "mono128x64";
 
 void task_display(void *ignore) {
 	u8g2_esp32_hal_t u8g2_esp32_hal = U8G2_ESP32_HAL_DEFAULT;
