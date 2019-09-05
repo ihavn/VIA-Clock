@@ -1,9 +1,0 @@
-eclipse.preferences.version=1
-environment/project/0.1843208551/BATCH_BUILD/delimiter=;
-environment/project/0.1843208551/BATCH_BUILD/operation=append
-environment/project/0.1843208551/BATCH_BUILD/value=1
-environment/project/0.1843208551/IDF_PATH/delimiter=;
-environment/project/0.1843208551/IDF_PATH/operation=append
-environment/project/0.1843208551/IDF_PATH/value=D\:\\esp-idf
-environment/project/0.1843208551/append=true
-environment/project/0.1843208551/appendContributed=true
