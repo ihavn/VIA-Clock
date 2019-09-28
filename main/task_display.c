@@ -39,6 +39,7 @@ void task_display(void *ignore) {
 		//u8x8_byte_sw_i2c,
 		u8g2_esp32_i2c_byte_cb,
 		u8g2_esp32_gpio_and_delay_cb);  // init u8g2 structure
+
 	u8x8_SetI2CAddress(&u8g2.u8x8,0x78);
 
 	ESP_LOGI(TAG, "u8g2_InitDisplay");
