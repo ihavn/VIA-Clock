@@ -6,14 +6,11 @@
 #include "freertos/task.h"
 #include "esp_system.h"
 #include "esp_spi_flash.h"
-
-void task_display(void *ignore);
+#include "display_handler.h"
 
 void app_main()
 {
     printf("Hello world!\n");
-
-    xTaskCreate(&task_display, "task_display", 8048, NULL, 5, NULL);
 
     /* Print chip information */
     esp_chip_info_t chip_info;
@@ -27,6 +24,9 @@ void app_main()
 
     printf("%dMB %s flash\n", spi_flash_get_chip_size() / (1024 * 1024),
             (chip_info.features & CHIP_FEATURE_EMB_FLASH) ? "embedded" : "external");
+    displayInit();
+    displayTest();
+    displayWifiSymbol(0,0,0);
 
     for (int i = 10; i >= 0; i--) {
         printf("Restarting in %d seconds...\n", i);
