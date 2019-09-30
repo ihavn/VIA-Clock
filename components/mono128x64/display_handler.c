@@ -75,9 +75,54 @@ void displayPowerDown(void)
 	u8g2_SetPowerSave(&_u8g2, 1); // power down display
 }
 
-void displayWifiSymbol(uint8_t strength, uint8_t xPos, uint8_t yPos)
-{
-	u8g2_SetFont(&_u8g2, u8g2_font_open_iconic_www_2x_t);
-	u8g2_DrawGlyph(&_u8g2, 112, 15, 72);
-	u8g2_SendBuffer(&_u8g2);
+// -------------------------------------------------------------------------
+void displayWifiSymbol(uint8_t percent, uint8_t xPos, uint8_t yPos) {
+
+	static uint8_t _lastCol = 200;
+	// wifi contour
+	static unsigned char image_bits[] = { 0x00, 0x00, 0xff, 0x00, 0x00, 0xfd,
+			0x00, 0x70, 0xfd, 0x00, 0x50, 0xfd, 0x00, 0x57, 0xfd, 0x00, 0x55,
+			0xfd, 0x70, 0x55, 0xfd, 0x50, 0x55, 0xfd, 0x57, 0x55, 0xfd, 0x55,
+			0x55, 0xfd, 0x55, 0x55, 0xfd, 0x77, 0x77, 0xff };
+
+	if (200 == _lastCol) // First time draw contour
+			{
+		u8g2_DrawXBM(&_u8g2, xPos, yPos, DISPLAY_WIFI_SYMBOL_WIDTH, DISPLAY_WIFI_SYMBOL_HEIGHT, image_bits);
+		_lastCol = 0;
+	}
+
+	// test if valid percentage
+	if (percent > 100) {
+		percent = 100;
+	}
+
+	uint8_t _col = 0;
+
+	if (percent > 1) {
+		_col = 1 + (percent - 1) / 20;
+
+		if (_col > _lastCol) {
+			for (uint8_t c = _lastCol; c < _col; c++) {
+				u8g2_DrawBox(&_u8g2, (xPos + 1) + (c * 4), yPos + 1 + ((4 - c) * 2),
+						1, 2 + (c * 2));
+			}
+		} else if (_col < _lastCol) {
+			u8g2_SetDrawColor(&_u8g2, 0);
+			for (uint8_t c = _col; c < 5; c++) {
+				u8g2_DrawBox(&_u8g2, (xPos + 1) + (c * 4), yPos + 1 + ((4 - c) * 2),
+						1, 2 + (c * 2));
+			}
+			u8g2_SetDrawColor(&_u8g2, 1);
+		}
+	} else {
+		// clear all
+		u8g2_DrawXBM(&_u8g2, xPos, yPos, DISPLAY_WIFI_SYMBOL_WIDTH, DISPLAY_WIFI_SYMBOL_HEIGHT, image_bits);
+	}
+
+	// only draw if there are changes
+	if (_col != _lastCol) {
+		u8g2_SendBuffer(&_u8g2);
+		_lastCol = _col;
+	}
+}
 }
