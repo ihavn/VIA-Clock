@@ -26,9 +26,15 @@ void app_main() {
 	displayInit();
 	//displayTest();
 	displayPowerUp();
+	displaySetFont(u8g2_font_profont11_mf);
+
+	char _tmp[30];
+
 	for (;;) {
 		for (int i = 0; i <= 10; i++) {
 			printf("Im here!!\n");
+			sprintf(_tmp,"%5d %%", i*10);
+			displayString(0, 40, _tmp);
 			displayBatterySymbol(111, 3, i * 10 );
 			displayWifiSymbol(0, 2, i*10);
 			vTaskDelay(1000 / portTICK_PERIOD_MS);
@@ -36,6 +42,8 @@ void app_main() {
 
 		for (int i = 10; i > 0; i--) {
 			printf("And here!!\n");
+			sprintf(_tmp,"%5d %%", i*10);
+			displayString(0, 40, _tmp);
 			displayBatterySymbol(111, 3, i * 10 );
 			displayWifiSymbol(0, 2, i*10);
 			vTaskDelay(1000 / portTICK_PERIOD_MS);
