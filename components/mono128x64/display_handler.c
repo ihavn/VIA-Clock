@@ -77,7 +77,7 @@ void displayPowerDown(void) {
 }
 
 // -------------------------------------------------------------------------
-void displayWifiSymbol(uint8_t percent, uint8_t xPos, uint8_t yPos) {
+void displayWifiSymbol(uint8_t xPos, uint8_t yPos, uint8_t percentage) {
 
 	static uint8_t _lastCol = 200;
 	// wifi contour
@@ -93,14 +93,14 @@ void displayWifiSymbol(uint8_t percent, uint8_t xPos, uint8_t yPos) {
 	}
 
 	// test if valid percentage
-	if (percent > 100) {
-		percent = 100;
+	if (percentage > 100) {
+		percentage = 100;
 	}
 
 	uint8_t _col = 0;
 
-	if (percent > 1) {
-		_col = 1 + (percent - 1) / 20;
+	if (percentage > 1) {
+		_col = 1 + (percentage - 1) / 20;
 
 		if (_col > _lastCol) {
 			for (uint8_t c = _lastCol; c < _col; c++) {
@@ -128,7 +128,7 @@ void displayWifiSymbol(uint8_t percent, uint8_t xPos, uint8_t yPos) {
 }
 
 // -------------------------------------------------------------------------
-void displayBatterySymbol(uint8_t percent, uint8_t xPos, uint8_t yPos) {
+void displayBatterySymbol(uint8_t xPos, uint8_t yPos, uint8_t percentage) {
 
 
 	static uint8_t _lastWidth = 200;
@@ -145,11 +145,11 @@ void displayBatterySymbol(uint8_t percent, uint8_t xPos, uint8_t yPos) {
 	}
 
 	// test if valid percentage
-	if (percent > 100) {
-		percent = 100;
+	if (percentage > 100) {
+		percentage = 100;
 	}
 
-	uint8_t _width = (percent + 5) / 10;
+	uint8_t _width = (percentage + 5) / 10;
 
 	if (_width > _lastWidth) {
 		u8g2_DrawBox(&_u8g2, xPos + 2, yPos + 2, _width, 5);

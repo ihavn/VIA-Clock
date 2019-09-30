@@ -29,15 +29,15 @@ void app_main() {
 	for (;;) {
 		for (int i = 0; i <= 10; i++) {
 			printf("Im here!!\n");
-			displayBatterySymbol(i * 10, 111, 3);
-			displayWifiSymbol(i*10, 0, 2);
+			displayBatterySymbol(111, 3, i * 10 );
+			displayWifiSymbol(0, 2, i*10);
 			vTaskDelay(1000 / portTICK_PERIOD_MS);
 		}
 
 		for (int i = 10; i > 0; i--) {
 			printf("And here!!\n");
-			displayBatterySymbol(i * 10, 111, 3);
-			displayWifiSymbol(i*10, 0, 2);
+			displayBatterySymbol(111, 3, i * 10 );
+			displayWifiSymbol(0, 2, i*10);
 			vTaskDelay(1000 / portTICK_PERIOD_MS);
 		}
 	}

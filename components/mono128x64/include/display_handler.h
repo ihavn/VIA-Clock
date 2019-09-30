@@ -17,8 +17,8 @@
 void displayInit(void);
 void displayPowerUp(void);
 void displayPowerDown(void);
-void displayWifiSymbol(uint8_t percent, uint8_t xPos, uint8_t yPos);
-void displayBatterySymbol(uint8_t percent, uint8_t xPos, uint8_t yPos);
+void displayWifiSymbol(uint8_t xPos, uint8_t yPos, uint8_t percentage);
+void displayBatterySymbol(uint8_t xPos, uint8_t yPos, uint8_t percentage);
 
 
 
