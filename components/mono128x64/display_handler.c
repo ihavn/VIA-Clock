@@ -165,3 +165,18 @@ void displayBatterySymbol(uint8_t xPos, uint8_t yPos, uint8_t percentage) {
 		_lastWidth = _width;
 	}
 }
+
+// -------------------------------------------------------------------------
+void displaySetFont(const uint8_t *font)
+{
+	u8g2_SetFont(&_u8g2, font);
+}
+
+// -------------------------------------------------------------------------
+uint8_t displayString(uint8_t xPos, uint8_t yPos, char *string)
+{
+	uint8_t _width = u8g2_DrawStr(&_u8g2, xPos, yPos, string);
+	u8g2_SendBuffer(&_u8g2);
+
+	return _width;
+}
