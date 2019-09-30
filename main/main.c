@@ -26,7 +26,7 @@ void app_main() {
 	displayInit();
 	//displayTest();
 	displayPowerUp();
-	displaySetFont(u8g2_font_profont11_mf);
+	displaySetFont(u8g2_font_profont12_mr);
 
 	char _tmp[30];
 
