@@ -7,12 +7,18 @@
 
 #ifndef COMPONENTS_MONO128X64_INCLUDE_DISPLAY_HANDLER_H_
 #define COMPONENTS_MONO128X64_INCLUDE_DISPLAY_HANDLER_H_
+
 #define DISPLAY_WIFI_SYMBOL_WIDTH 19
 #define DISPLAY_WIFI_SYMBOL_HEIGHT 12
+
+#define DISPLAY_BATTERY_SYMBOL_WIDTH  16
+#define DISPLAY_BATTERY_SYMBOL_HEIGHT 9
+
 void displayInit(void);
 void displayPowerUp(void);
 void displayPowerDown(void);
 void displayWifiSymbol(uint8_t percent, uint8_t xPos, uint8_t yPos);
+void displayBatterySymbol(uint8_t percent, uint8_t xPos, uint8_t yPos);
 
 
 

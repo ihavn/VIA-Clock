@@ -14,9 +14,10 @@
 #include <string.h>
 #include <u8g2.h>
 
-
 #include "sdkconfig.h"
 #include "u8g2_esp32_hal.h"
+
+#include <display_handler.h>
 
 // SDA - PIN
 #define PIN_SDA CONFIG_MONO128x64_I2C_SDA_PIN // 5 //21
@@ -28,6 +29,7 @@ static const char *TAG = "mono128x64";
 static u8g2_esp32_hal_t _u8g2_esp32_hal = U8G2_ESP32_HAL_DEFAULT;
 static u8g2_t _u8g2; // a structure which will contain all the data for one display
 
+// -------------------------------------------------------------------------
 void displayInit(void) {
 	_u8g2_esp32_hal.sda = PIN_SDA;
 	_u8g2_esp32_hal.scl = PIN_SCL;
@@ -42,10 +44,8 @@ void displayInit(void) {
 	u8g2_InitDisplay(&_u8g2); // send init sequence to the display, display is in sleep mode after this,
 }
 
+// -------------------------------------------------------------------------
 void displayTest(void) {
-	ESP_LOGI(TAG, "u8g2_SetPowerSave");
-	u8g2_SetPowerSave(&_u8g2, 0); // wake up display
-
 	ESP_LOGI(TAG, "u8g2_ClearBuffer");
 	u8g2_ClearBuffer(&_u8g2);
 
@@ -53,24 +53,25 @@ void displayTest(void) {
 	u8g2_DrawBox(&_u8g2, 0, 26, 80, 6);
 	u8g2_DrawFrame(&_u8g2, 0, 26, 100, 6);
 
-	ESP_LOGI(TAG, "u8g2_SetFont");
-	u8g2_SetFont(&_u8g2, u8g2_font_9x15B_mf);
-	ESP_LOGI(TAG, "u8g2_DrawStr");
-	u8g2_DrawStr(&_u8g2, 2, 15, "Header");
+	/*	ESP_LOGI(TAG, "u8g2_SetFont");
+	 u8g2_SetFont(&_u8g2, u8g2_font_9x15B_mf);
+	 ESP_LOGI(TAG, "u8g2_DrawStr");
+	 u8g2_DrawStr(&_u8g2, 2, 15, "Header");
+	 */
 	ESP_LOGI(TAG, "u8g2_SendBuffer");
 	u8g2_SendBuffer(&_u8g2);
 
 	ESP_LOGI(TAG, "All done!");
 }
 
-void displayPowerUp(void)
-{
+// -------------------------------------------------------------------------
+void displayPowerUp(void) {
 	ESP_LOGI(TAG, "u8g2_SetPowerSave 0");
 	u8g2_SetPowerSave(&_u8g2, 0); // power up display
 }
 
-void displayPowerDown(void)
-{
+// -------------------------------------------------------------------------
+void displayPowerDown(void) {
 	ESP_LOGI(TAG, "u8g2_SetPowerSave 1");
 	u8g2_SetPowerSave(&_u8g2, 1); // power down display
 }
@@ -125,4 +126,42 @@ void displayWifiSymbol(uint8_t percent, uint8_t xPos, uint8_t yPos) {
 		_lastCol = _col;
 	}
 }
+
+// -------------------------------------------------------------------------
+void displayBatterySymbol(uint8_t percent, uint8_t xPos, uint8_t yPos) {
+
+
+	static uint8_t _lastWidth = 200;
+	// battery contour
+	const unsigned char imageBits[] = { 0xff, 0x3f, 0xff, 0x3f, 0x03, 0xf0,
+			0x03, 0xf0, 0x03, 0xf0, 0x03, 0xf0, 0x03, 0xf0, 0xff, 0x3f, 0xff,
+			0x3f };
+
+	// First time draw contour
+	if (200 == _lastWidth) {
+		u8g2_DrawXBM(&_u8g2, xPos, yPos, DISPLAY_BATTERY_SYMBOL_WIDTH, DISPLAY_BATTERY_SYMBOL_HEIGHT,
+				imageBits);
+		_lastWidth = 0;
+	}
+
+	// test if valid percentage
+	if (percent > 100) {
+		percent = 100;
+	}
+
+	uint8_t _width = (percent + 5) / 10;
+
+	if (_width > _lastWidth) {
+		u8g2_DrawBox(&_u8g2, xPos + 2, yPos + 2, _width, 5);
+	} else if (_width < _lastWidth) {
+		u8g2_SetDrawColor(&_u8g2, 0);
+		u8g2_DrawBox(&_u8g2, xPos + 2 + _width, yPos + 2, 10 - _width, 5);
+		u8g2_SetDrawColor(&_u8g2, 1);
+	}
+
+	// only draw if there are changes
+	if (_width != _lastWidth) {
+		u8g2_SendBuffer(&_u8g2);
+		_lastWidth = _width;
+	}
 }
