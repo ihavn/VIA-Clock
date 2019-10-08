@@ -6,7 +6,9 @@
 #include "freertos/task.h"
 #include "esp_system.h"
 #include "esp_spi_flash.h"
-#include "display_handler.h"
+
+#include "../components/handler_oled_128x64/include/handler_display.h"
+#include "handler_ds18b20.h"
 
 void app_main() {
 	printf("Hello world!\n");
@@ -30,24 +32,41 @@ void app_main() {
 
 	char _tmp[30];
 
-	for (;;) {
-		for (int i = 0; i <= 10; i++) {
-			printf("Im here!!\n");
-			sprintf(_tmp,"%5d %%", i*10);
-			displayString(0, 40, _tmp);
-			displayBatterySymbol(111, 3, i * 10 );
-			displayWifiSymbol(0, 2, i*10);
-			vTaskDelay(1000 / portTICK_PERIOD_MS);
-		}
-
-		for (int i = 10; i > 0; i--) {
-			printf("And here!!\n");
-			sprintf(_tmp,"%5d %%", i*10);
-			displayString(0, 40, _tmp);
-			displayBatterySymbol(111, 3, i * 10 );
-			displayWifiSymbol(0, 2, i*10);
-			vTaskDelay(1000 / portTICK_PERIOD_MS);
-		}
+	for (int i = 0; i <= 2; i++) {
+		printf("Im here!!\n");
+		sprintf(_tmp, "%5d %%", i * 10);
+		displayString(50, 15, _tmp);
+		displayBatterySymbol(111, 3, i * 10);
+		displayWifiSymbol(0, 2, i * 10);
+		vTaskDelay(1000 / portTICK_PERIOD_MS);
 	}
 
+	for (int i = 2; i > 0; i--) {
+		printf("And here!!\n");
+		sprintf(_tmp, "%5d %%", i * 10);
+		displayString(50, 15, _tmp);
+		displayBatterySymbol(111, 3, i * 10);
+		displayWifiSymbol(0, 2, i * 10);
+		vTaskDelay(1000 / portTICK_PERIOD_MS);
+	}
+
+	ds18b20Init();
+	int noOfTemp = ds18b20FindDevices();
+
+	for (;;) {
+//		for (int i = 0; i < noOfTemp; i++) {
+//			printf("T%d: %5.1f\n", i, ds18b20GetSingleTemperature(i));
+//			vTaskDelay(1000 / portTICK_PERIOD_MS);
+//		}
+
+		float results[DS18B20_MAX_DEVICES];
+		DS18B20_ERROR errors[DS18B20_MAX_DEVICES] = { 0 };
+
+		ds18b20GetAllTemperatures(results, errors);
+		for (int i = 0; i < noOfTemp; i++) {
+			sprintf(_tmp, "T%d:%4.1f", i, results[i]);
+			printf("%s\n",_tmp);
+			displayString(0, 30+(i*11), _tmp);
+		}
+	}
 }
