@@ -1,0 +1,34 @@
+menu OLED
+    config DISPLAY_ENABLED
+        bool "OLED Used"
+        help
+            Select this option to enable OLED Display and show the submenu with OLED configuration choices.
+            
+	menu "ESP Module"
+    	visible if DISPLAY_ENABLED
+    	
+		choice
+			prompt "Select ESP Module"
+			default ESP32WROOM32C
+			config OLIN128x64
+					bool 
+					prompt "Olin Oled 128 x 64"
+						
+			config ESP32WROOM32
+				bool 
+				prompt "ESP32-WROOM-32"
+		endchoice
+		
+	    config MONO128x64_I2C_SDA_PIN
+	        int
+	        default 5 if OLIN128x64
+	        default 21 if ESP32WROOM32
+	        default -1
+	        
+	    config MONO128x64_I2C_SCL_PIN
+	        int
+	        default 4 if OLIN128x64
+	        default 22 if ESP32WROOM32
+	        default -1
+	endmenu
+endmenu

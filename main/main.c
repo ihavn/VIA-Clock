@@ -1,38 +1,72 @@
 /* Home surveillance system
  *
-*/
+ */
 #include <stdio.h>
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "esp_system.h"
 #include "esp_spi_flash.h"
 
-void task_display(void *ignore);
+#include "../components/handler_oled_128x64/include/handler_display.h"
+#include "handler_ds18b20.h"
 
-void app_main()
-{
-    printf("Hello world!\n");
+void app_main() {
+	printf("Hello world!\n");
 
-    xTaskCreate(&task_display, "task_display", 8048, NULL, 5, NULL);
+	/* Print chip information */
+	esp_chip_info_t chip_info;
+	esp_chip_info(&chip_info);
+	printf("This is ESP32 chip with %d CPU cores, WiFi%s%s, ", chip_info.cores,
+			(chip_info.features & CHIP_FEATURE_BT) ? "/BT" : "",
+			(chip_info.features & CHIP_FEATURE_BLE) ? "/BLE" : "");
 
-    /* Print chip information */
-    esp_chip_info_t chip_info;
-    esp_chip_info(&chip_info);
-    printf("This is ESP32 chip with %d CPU cores, WiFi%s%s, ",
-            chip_info.cores,
-            (chip_info.features & CHIP_FEATURE_BT) ? "/BT" : "",
-            (chip_info.features & CHIP_FEATURE_BLE) ? "/BLE" : "");
+	printf("silicon revision %d, ", chip_info.revision);
 
-    printf("silicon revision %d, ", chip_info.revision);
+	printf("%dMB %s flash\n", spi_flash_get_chip_size() / (1024 * 1024),
+			(chip_info.features & CHIP_FEATURE_EMB_FLASH) ?
+					"embedded" : "external");
+	displayInit();
+	//displayTest();
+	displayPowerUp();
+	displaySetFont(u8g2_font_profont12_mr);
 
-    printf("%dMB %s flash\n", spi_flash_get_chip_size() / (1024 * 1024),
-            (chip_info.features & CHIP_FEATURE_EMB_FLASH) ? "embedded" : "external");
+	char _tmp[30];
 
-    for (int i = 10; i >= 0; i--) {
-        printf("Restarting in %d seconds...\n", i);
-        vTaskDelay(1000 / portTICK_PERIOD_MS);
-    }
-    printf("Restarting now.\n");
-    fflush(stdout);
-    esp_restart();
+	for (int i = 0; i <= 2; i++) {
+		printf("Im here!!\n");
+		sprintf(_tmp, "%5d %%", i * 10);
+		displayString(50, 15, _tmp);
+		displayBatterySymbol(111, 3, i * 10);
+		displayWifiSymbol(0, 2, i * 10);
+		vTaskDelay(1000 / portTICK_PERIOD_MS);
+	}
+
+	for (int i = 2; i > 0; i--) {
+		printf("And here!!\n");
+		sprintf(_tmp, "%5d %%", i * 10);
+		displayString(50, 15, _tmp);
+		displayBatterySymbol(111, 3, i * 10);
+		displayWifiSymbol(0, 2, i * 10);
+		vTaskDelay(1000 / portTICK_PERIOD_MS);
+	}
+
+	ds18b20Init();
+	int noOfTemp = ds18b20FindDevices();
+
+	for (;;) {
+//		for (int i = 0; i < noOfTemp; i++) {
+//			printf("T%d: %5.1f\n", i, ds18b20GetSingleTemperature(i));
+//			vTaskDelay(1000 / portTICK_PERIOD_MS);
+//		}
+
+		float results[DS18B20_MAX_DEVICES];
+		DS18B20_ERROR errors[DS18B20_MAX_DEVICES] = { 0 };
+
+		ds18b20GetAllTemperatures(results, errors);
+		for (int i = 0; i < noOfTemp; i++) {
+			sprintf(_tmp, "T%d:%4.1f", i, results[i]);
+			printf("%s\n",_tmp);
+			displayString(0, 30+(i*11), _tmp);
+		}
+	}
 }

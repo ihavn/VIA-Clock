@@ -1,0 +1,17 @@
+menu Application
+    config ONE_WIRE_ENABLED
+        bool "One-Wire"
+        help
+            Select this option to enable One-Wire and show the submenu with One-Wire configuration choices.
+
+    menu "One-Wire"
+    	visible if ONE_WIRE_ENABLED
+    
+		config ONE_WIRE_GPIO
+		    int "GPIO pin to use for One-wire interface"
+		    default 18 
+		    range 0 39
+		    help
+		        What GPIO pin should be used for One-wire interface.
+	endmenu
+endmenu
