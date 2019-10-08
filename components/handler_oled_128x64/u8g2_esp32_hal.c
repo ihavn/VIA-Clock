@@ -1,3 +1,5 @@
+#include "../handler_oled_128x64/u8g2_esp32_hal.h"
+
 #include <stdio.h>
 #include <string.h>
 
@@ -7,7 +9,6 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 
-#include "u8g2_esp32_hal.h"
 
 static const char *TAG = "u8g2_hal";
 static const unsigned int I2C_TIMEOUT_MS = 1000;

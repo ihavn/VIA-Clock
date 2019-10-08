@@ -5,6 +5,9 @@
  *      Author: IHA
  */
 
+#include "include/handler_display.h"
+#include "include/handler_display.h"
+
 #include <driver/gpio.h>
 #include <driver/spi_master.h>
 #include <esp_log.h>
@@ -15,9 +18,7 @@
 #include <u8g2.h>
 
 #include "sdkconfig.h"
-#include "u8g2_esp32_hal.h"
-
-#include <display_handler.h>
+#include "../handler_oled_128x64/u8g2_esp32_hal.h"
 
 // SDA - PIN
 #define PIN_SDA CONFIG_MONO128x64_I2C_SDA_PIN // 5 //21
