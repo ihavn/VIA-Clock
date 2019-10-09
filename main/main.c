@@ -59,8 +59,14 @@ void app_main() {
 	// Start WIFI task and let it connect to AP
 	xTaskCreate(&wifiTask, "task_wifi", 2096, NULL, 5, NULL);
 
+	char ssid[20];
+	wifiGetSSID(ssid);
+	u8g2_DrawStr(&_u8g2, 5+DISPLAY_WIFI_SYMBOL_WIDTH, 15, ssid);
+	displayUpdate();
+
 	ds18b20Init();
 	int noOfTemp = ds18b20FindDevices();
+	uint8_t rssiPercent = 0;
 
 	for (;;) {
 //		for (int i = 0; i < noOfTemp; i++) {
@@ -78,5 +84,9 @@ void app_main() {
 			u8g2_DrawStr(&_u8g2, 0, 30+(i*11), _tmp);
 			displayUpdate();
 		}
+
+		wifiGetRSSIPercent(&rssiPercent);
+		displayWifiSymbol(0, 2, rssiPercent);
+		displayUpdate();
 	}
 }

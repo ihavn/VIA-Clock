@@ -17,5 +17,7 @@ extern const int WIFI_CONNECTED_BIT;
 
 void wifiTask(void *pvParameter);
 esp_err_t wifiGetRSSI(int8_t * rssi);
+esp_err_t wifiGetRSSIPercent(uint8_t * rssiPercent);
+void wifiGetSSID(char * ssid);
 
 #endif /* TASKS_TASK_WIFI_H_ */

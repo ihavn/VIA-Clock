@@ -31,7 +31,8 @@ EventGroupHandle_t wifi_event_group;
 const int WIFI_CONNECTED_BIT = BIT0;
 
 static wifi_ap_record_t s_ap_record;
-static wifi_config_t s_wifi_config = { .sta = { .ssid = ESP_WIFI_SSID, .password =
+static wifi_config_t s_wifi_config = { .sta = { .ssid = ESP_WIFI_SSID,
+		.password =
 		ESP_WIFI_PASS }, };
 
 static const char *TAG = "wifiTask";
@@ -65,10 +66,8 @@ static esp_err_t event_handler(void *ctx, system_event_t *event) {
 	return ESP_OK;
 }
 
-esp_err_t wifiGetRSSI(int8_t * rssi)
-{
-	if (xEventGroupGetBits(wifi_event_group) & WIFI_CONNECTED_BIT)
-	{
+esp_err_t wifiGetRSSI(int8_t *rssi) {
+	if (xEventGroupGetBits(wifi_event_group) & WIFI_CONNECTED_BIT) {
 		esp_err_t err = esp_wifi_sta_get_ap_info(&s_ap_record);
 		*rssi = s_ap_record.rssi;
 		return err;
@@ -76,6 +75,35 @@ esp_err_t wifiGetRSSI(int8_t * rssi)
 
 	*rssi = -127;
 	return WIFI_REASON_NO_AP_FOUND;
+}
+
+esp_err_t wifiGetRSSIPercent(uint8_t *rssiPercent) {
+	esp_err_t err;
+	int8_t rssi = -127;
+
+	*rssiPercent = 0;
+
+	if ((err = wifiGetRSSI(&rssi)) != ESP_OK) {
+		return err;
+	}
+
+	// dBm to Quality:
+	if (rssi <= -100)
+		*rssiPercent = 0;
+	else if (rssi >= -50)
+		*rssiPercent = 100;
+	else
+		*rssiPercent = 2 * (rssi + 100);
+
+	return ESP_OK;
+}
+
+void wifiGetSSID(char *ssid) {
+	if (xEventGroupGetBits(wifi_event_group) & WIFI_CONNECTED_BIT) {
+		strcpy(ssid, ESP_WIFI_SSID);
+	} else {
+		strcpy(ssid, "N/C");
+	}
 }
 
 void wifiTask(void *pvParameter) {
@@ -86,26 +114,28 @@ void wifiTask(void *pvParameter) {
 	tcpip_adapter_init();
 	ESP_ERROR_CHECK(esp_event_loop_init(event_handler, NULL));
 
-	wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
+	wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT()
+	;
 	ESP_ERROR_CHECK(esp_wifi_init(&cfg));
 	ESP_ERROR_CHECK(esp_wifi_set_mode(WIFI_MODE_STA));
 	ESP_ERROR_CHECK(esp_wifi_set_config(ESP_IF_WIFI_STA, &s_wifi_config));
 	ESP_ERROR_CHECK(esp_wifi_start());
 
-
 	ESP_LOGI(TAG, "Connect to ap SSID:%s password:%s", ESP_WIFI_SSID,
 			ESP_WIFI_PASS);
 	ESP_LOGI(TAG, "Wifi initialisation finished");
 
-
 	int8_t rssi;
 
 	wifiGetRSSI(&rssi);
-	ESP_LOGI(TAG, "RSSI:%d",rssi);
+	ESP_LOGI(TAG, "RSSI:%d", rssi);
 
-	xEventGroupWaitBits(wifi_event_group, WIFI_CONNECTED_BIT, false, true, portMAX_DELAY);
+	xEventGroupWaitBits(wifi_event_group, WIFI_CONNECTED_BIT, false, true,
+			portMAX_DELAY);
 
 	for (;;) {
+		// \todo Add check for disconnect and then try to connect after some time
+
 		//xEventGroupClearBits(s_wifi_event_group, WIFI_CONNECTED_BIT);
 		//ESP_LOGE(TAG, "Disconnected from AP!");
 		// Let's try to connect after 10 minutes
@@ -114,8 +144,8 @@ void wifiTask(void *pvParameter) {
 
 		vTaskDelay(5000 / portTICK_PERIOD_MS);
 
-		wifiGetRSSI(&rssi);
-		ESP_LOGI(TAG, "RSSI:%d",rssi);
+//		wifiGetRSSI(&rssi);
+//		ESP_LOGI(TAG, "RSSI:%d",rssi);
 	}
 }
 
