@@ -55,3 +55,7 @@ build/
 .settings/
 
 sdkconfig.old
+
+sdkconfig
+
+DoxyDoc/
