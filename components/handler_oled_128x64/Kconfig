@@ -19,13 +19,13 @@ menu OLED
 				prompt "ESP32-WROOM-32"
 		endchoice
 		
-	    config MONO128x64_I2C_SDA_PIN
+	    config OLED_I2C_SDA_PIN
 	        int
 	        default 5 if OLIN128x64
 	        default 21 if ESP32WROOM32
 	        default -1
 	        
-	    config MONO128x64_I2C_SCL_PIN
+	    config OLED_I2C_SCL_PIN
 	        int
 	        default 4 if OLIN128x64
 	        default 22 if ESP32WROOM32

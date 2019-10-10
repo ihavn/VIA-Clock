@@ -1,0 +1,21 @@
+menu "MQTT Broker Configuration"
+
+    config MQTT_BROKER_URL
+        string "MQTT Url incl. port number"
+        default "mqtt://xxxxxxx:1883"
+        help
+            MQTT Url including port no to the MQTT broker to connect to.
+            Format: url:portno
+
+    config MQTT_BROKER_USERNAME
+        string "Broker username"
+        default "myusername"
+        help
+            Username for the MQTT Broker.
+
+    config MQTT_BROKER_PASSWORD
+        string "Broker password"
+        default "mypassword"
+        help
+            Password for the MQTT Broker.        
+endmenu
