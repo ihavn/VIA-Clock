@@ -11,7 +11,7 @@
 
 #include "handler_display.h"
 #include "handler_ds18b20.h"
-#include "tasks/task_wifi.h"
+#include "handler_wifi.h"
 #include "tasks/task_mqtt.h"
 
 static const char *TAG = "MAIN";
@@ -64,7 +64,7 @@ void app_main() {
 	wifi_event_group = xEventGroupCreate();
 
 	// Start WIFI task and let it connect to AP
-	xTaskCreate(&wifiTask, "task_wifi", 4096, NULL, 5, NULL);
+	wifiInit();
 
 	char ssid[20];
 	wifiGetSSID(ssid);

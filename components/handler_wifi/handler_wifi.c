@@ -6,6 +6,7 @@
  software is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR
  CONDITIONS OF ANY KIND, either express or implied.
  */
+
 #include <string.h>
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
@@ -15,11 +16,11 @@
 #include "esp_event_loop.h"
 #include "esp_event_legacy.h"
 #include "esp_log.h"
-#include "nvs_flash.h"
+
+#include "handler_wifi.h"
 
 #include "sdkconfig.h"
 
-#include "task_wifi.h"
 
 /* Uses WiFi configuration that you can set via 'make menuconfig'.
 
@@ -110,8 +111,9 @@ void wifiGetSSID(char *ssid) {
 	}
 }
 
-void wifiTask(void *pvParameter) {
+void wifiInit() {
 	ESP_LOGI(TAG, "Wifi initialisation started");
+	wifi_event_group = xEventGroupCreate();
 
 	tcpip_adapter_init();
 	ESP_ERROR_CHECK(esp_event_loop_init(event_handler, NULL));
@@ -123,31 +125,14 @@ void wifiTask(void *pvParameter) {
 	ESP_ERROR_CHECK(esp_wifi_set_config(ESP_IF_WIFI_STA, &s_wifi_config));
 	ESP_ERROR_CHECK(esp_wifi_start());
 
-	ESP_LOGI(TAG, "Connect to ap SSID:%s password:%s", ESP_WIFI_SSID,
-			ESP_WIFI_PASS);
 	ESP_LOGI(TAG, "Wifi initialisation finished");
-
-	int8_t rssi;
-
-	wifiGetRSSI(&rssi);
-	ESP_LOGI(TAG, "RSSI:%d", rssi);
 
 	xEventGroupWaitBits(wifi_event_group, WIFI_CONNECTED_BIT, false, true,
 			portMAX_DELAY);
+	ESP_LOGI(TAG, "Connect to ap SSID:%s", ESP_WIFI_SSID);
 
-	for (;;) {
-		// \todo Add check for disconnect and then try to connect after some time
-
-		//xEventGroupClearBits(s_wifi_event_group, WIFI_CONNECTED_BIT);
-		//ESP_LOGE(TAG, "Disconnected from AP!");
-		// Let's try to connect after 10 minutes
-		//vTaskDelay(600000L / portTICK_PERIOD_MS);
-		//esp_wifi_connect();
-
-		vTaskDelay(5000 / portTICK_PERIOD_MS);
-
-//		wifiGetRSSI(&rssi);
-//		ESP_LOGI(TAG, "RSSI:%d",rssi);
-	}
+	int8_t rssi;
+	wifiGetRSSI(&rssi);
+	ESP_LOGI(TAG, "RSSI:%d", rssi);
 }
 
