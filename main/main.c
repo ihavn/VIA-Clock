@@ -12,7 +12,7 @@
 #include "handler_display.h"
 #include "handler_ds18b20.h"
 #include "handler_wifi.h"
-#include "tasks/task_mqtt.h"
+#include "handler_mqtt.h"
 
 static const char *TAG = "MAIN";
 
@@ -61,10 +61,9 @@ void app_main() {
 		vTaskDelay(1000 / portTICK_PERIOD_MS);
 	}
 
-	wifi_event_group = xEventGroupCreate();
-
 	// Start WIFI task and let it connect to AP
 	wifiInit();
+	mqttInit();
 
 	char ssid[20];
 	wifiGetSSID(ssid);
@@ -75,9 +74,7 @@ void app_main() {
 	int noOfTemp = ds18b20FindDevices();
 	uint8_t rssiPercent = 0;
 
-    ESP_LOGI(TAG, "Waiting for wifi");
-    xEventGroupWaitBits(wifi_event_group, WIFI_CONNECTED_BIT, false, true, portMAX_DELAY);
-    mqtt_start();
+   // mqtt_start();
 
 	for (;;) {
 //		for (int i = 0; i < noOfTemp; i++) {
