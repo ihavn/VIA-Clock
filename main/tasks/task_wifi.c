@@ -13,8 +13,12 @@
 #include "esp_system.h"
 #include "esp_wifi.h"
 #include "esp_event_loop.h"
+#include "esp_event_legacy.h"
 #include "esp_log.h"
 #include "nvs_flash.h"
+
+#include "sdkconfig.h"
+
 #include "task_wifi.h"
 
 /* Uses WiFi configuration that you can set via 'make menuconfig'.
@@ -28,14 +32,14 @@
 
 /* FreeRTOS event group to signal when we are connected*/
 EventGroupHandle_t wifi_event_group;
-const int WIFI_CONNECTED_BIT = BIT0;
+int WIFI_CONNECTED_BIT = BIT0;
 
 static wifi_ap_record_t s_ap_record;
 static wifi_config_t s_wifi_config = { .sta = { .ssid = ESP_WIFI_SSID,
 		.password =
 		ESP_WIFI_PASS }, };
 
-static const char *TAG = "wifiTask";
+static const char *TAG = "WIFI_TASK";
 
 static int s_retry_num = 0;
 
@@ -108,8 +112,6 @@ void wifiGetSSID(char *ssid) {
 
 void wifiTask(void *pvParameter) {
 	ESP_LOGI(TAG, "Wifi initialisation started");
-
-	wifi_event_group = xEventGroupCreate();
 
 	tcpip_adapter_init();
 	ESP_ERROR_CHECK(esp_event_loop_init(event_handler, NULL));

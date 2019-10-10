@@ -13,7 +13,7 @@
 extern EventGroupHandle_t wifi_event_group;
 /* The event group allows multiple bits for each event, but we only care about one event
  * - are we connected to the AP with an IP? */
-extern const int WIFI_CONNECTED_BIT;
+extern int WIFI_CONNECTED_BIT;
 
 void wifiTask(void *pvParameter);
 esp_err_t wifiGetRSSI(int8_t * rssi);

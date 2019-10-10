@@ -6,11 +6,15 @@
 #include "freertos/task.h"
 #include "esp_system.h"
 #include "esp_spi_flash.h"
+#include "esp_log.h"
 #include "nvs_flash.h"
 
-#include "../components/handler_oled_128x64/include/handler_display.h"
+#include "handler_display.h"
 #include "handler_ds18b20.h"
 #include "tasks/task_wifi.h"
+#include "tasks/task_mqtt.h"
+
+static const char *TAG = "MAIN";
 
 void app_main() {
 	printf("Hello world!\n");
@@ -28,6 +32,7 @@ void app_main() {
 			(chip_info.features & CHIP_FEATURE_EMB_FLASH) ?
 					"embedded" : "external");
 
+	// Needed by WIFI
     nvs_flash_init();
 
 
@@ -56,8 +61,10 @@ void app_main() {
 		vTaskDelay(1000 / portTICK_PERIOD_MS);
 	}
 
+	wifi_event_group = xEventGroupCreate();
+
 	// Start WIFI task and let it connect to AP
-	xTaskCreate(&wifiTask, "task_wifi", 2096, NULL, 5, NULL);
+	xTaskCreate(&wifiTask, "task_wifi", 4096, NULL, 5, NULL);
 
 	char ssid[20];
 	wifiGetSSID(ssid);
@@ -67,6 +74,10 @@ void app_main() {
 	ds18b20Init();
 	int noOfTemp = ds18b20FindDevices();
 	uint8_t rssiPercent = 0;
+
+    ESP_LOGI(TAG, "Waiting for wifi");
+    xEventGroupWaitBits(wifi_event_group, WIFI_CONNECTED_BIT, false, true, portMAX_DELAY);
+    mqtt_start();
 
 	for (;;) {
 //		for (int i = 0; i < noOfTemp; i++) {

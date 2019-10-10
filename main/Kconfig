@@ -1,4 +1,4 @@
-menu "WIFI Configuration"
+menu "APP Configuration"
 
     config ESP_WIFI_SSID
         string "WiFi SSID"
@@ -17,4 +17,10 @@ menu "WIFI Configuration"
         default 5
         help
             Set the Maximum retry to avoid station reconnecting to the AP unlimited when the AP is really inexistent.
+            
+    config MQTT_BROKER_URL
+        string "Broker URL"
+        default "mqtt://iot.eclipse.org"
+        help
+            URL of the broker to connect to
 endmenu
