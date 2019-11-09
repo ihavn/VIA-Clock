@@ -74,7 +74,7 @@ void app_main() {
 	int noOfTemp = ds18b20FindDevices();
 	uint8_t rssiPercent = 0;
 
-   // mqtt_start();
+	char _topic[25];
 
 	for (;;) {
 //		for (int i = 0; i < noOfTemp; i++) {
@@ -91,6 +91,10 @@ void app_main() {
 			printf("%s\n",_tmp);
 			u8g2_DrawStr(&_u8g2, 0, 30+(i*11), _tmp);
 			displayUpdate();
+
+			sprintf(_topic, "/kontor/temperature/%d/", i);
+			sprintf(_tmp, "%4.1f", results[i]);
+			esp_mqtt_client_publish(client, _topic, _tmp, 0,0,0);
 		}
 
 		wifiGetRSSIPercent(&rssiPercent);

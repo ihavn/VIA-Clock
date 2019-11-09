@@ -25,6 +25,8 @@ static const char *TAG = "MQTT_HANDLER";
 
 extern EventGroupHandle_t wifi_event_group;
 
+esp_mqtt_client_handle_t client;
+
 static esp_err_t mqtt_event_handler(esp_mqtt_event_handle_t event)
 {
     esp_mqtt_client_handle_t client = event->client;
@@ -61,7 +63,7 @@ static esp_err_t mqtt_event_handler(esp_mqtt_event_handle_t event)
             ESP_LOGI(TAG, "MQTT_EVENT_ERROR");
             break;
         case MQTT_EVENT_BEFORE_CONNECT:
-        	ESP_LOGI(TAG, "MQTT_EVENT_ERROR");
+        	ESP_LOGI(TAG, "MQTT_EVENT_BEFORE_CONNECT");
         	break;
     }
     return ESP_OK;
@@ -70,16 +72,14 @@ static esp_err_t mqtt_event_handler(esp_mqtt_event_handle_t event)
 void mqttInit(void)
 {
     const esp_mqtt_client_config_t mqtt_cfg = {
-        //.uri = "mqtts://api.emitter.io:443",    // for mqtt over ssl
         .uri = CONFIG_MQTT_BROKER_URL, //for mqtt over tcp
-        // .uri = "ws://api.emitter.io:8080", //for mqtt over websocket
-        // .uri = "wss://api.emitter.io:443", //for mqtt over websocket secure
         .event_handle = mqtt_event_handler,
 		.username = CONFIG_MQTT_BROKER_USERNAME,
 		.password =CONFIG_MQTT_BROKER_PASSWORD,
+		.client_id = "ESP32_%CHIPID%",
     };
 
-    esp_mqtt_client_handle_t client = esp_mqtt_client_init(&mqtt_cfg);
+    client = esp_mqtt_client_init(&mqtt_cfg);
 
 	xEventGroupWaitBits(wifi_event_group, WIFI_CONNECTED_BIT, false, true,
 			portMAX_DELAY);
