@@ -23,6 +23,7 @@
  */
 
 #include <inttypes.h>
+#include <string.h>
 
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
@@ -40,6 +41,7 @@
 static OneWireBus * owb;
 static owb_rmt_driver_info rmt_driver_info;
 static OneWireBus_ROMCode device_rom_codes[DS18B20_MAX_DEVICES] = {0};
+static char * deviceRomSerialNumber[DS18B20_MAX_DEVICES] = {0};
 static DS18B20_Info * devices[DS18B20_MAX_DEVICES] = {0};
 static int num_devices = 0;
 
@@ -72,6 +74,11 @@ int ds18b20FindDevices(void) {
         char rom_code_s[17];
         owb_string_from_rom_code(search_state.rom_code, rom_code_s, sizeof(rom_code_s));
         printf("  %d : %s\n", num_devices, rom_code_s);
+        // extract device serial number - is part of the rom code
+        deviceRomSerialNumber[num_devices] = malloc(sizeof(char)*13);
+        strncpy(deviceRomSerialNumber[num_devices], rom_code_s+2, 12);
+        *(deviceRomSerialNumber[num_devices]+12) = 0;
+
         device_rom_codes[num_devices] = search_state.rom_code;
         ++num_devices;
         owb_search_next(owb, &search_state, &found);
@@ -131,9 +138,9 @@ void ds18b20GetAllTemperatures(float results[DS18B20_MAX_DEVICES], DS18B20_ERROR
     }
 }
 
-/*
-void app_main()
-{
+// -------------------------------------------------------------------------
+char * ds18b20GetDeviceSerialNumber(int deviceNumber ) {
+	return deviceRomSerialNumber[deviceNumber];
     // Override global log level
     esp_log_level_set("*", ESP_LOG_INFO);
 
@@ -164,7 +171,7 @@ void app_main()
         device_rom_codes[num_devices] = search_state.rom_code;
         ++num_devices;
         owb_search_next(owb, &search_state, &found);
-    }
+}
     printf("Found %d device%s\n", num_devices, num_devices == 1 ? "" : "s");
 
     // In this example, if a single device is present, then the ROM code is probably
