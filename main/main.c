@@ -66,33 +66,31 @@ void app_main() {
 	mqttInit();
 
 	char ssid[20];
+
 	wifiGetSSID(ssid);
 	u8g2_DrawStr(&_u8g2, 5+DISPLAY_WIFI_SYMBOL_WIDTH, 15, ssid);
 	displayUpdate();
 
 	ds18b20Init();
-	int noOfTemp = ds18b20FindDevices();
+	int noOfTempSensors = ds18b20FindDevices();
+
 	uint8_t rssiPercent = 0;
 
-	char _topic[25];
+	char _topic[40];
+
+	float results[DS18B20_MAX_DEVICES];
+	DS18B20_ERROR errors[DS18B20_MAX_DEVICES] = { 0 };
 
 	for (;;) {
-//		for (int i = 0; i < noOfTemp; i++) {
-//			printf("T%d: %5.1f\n", i, ds18b20GetSingleTemperature(i));
-//			vTaskDelay(1000 / portTICK_PERIOD_MS);
-//		}
-
-		float results[DS18B20_MAX_DEVICES];
-		DS18B20_ERROR errors[DS18B20_MAX_DEVICES] = { 0 };
 
 		ds18b20GetAllTemperatures(results, errors);
-		for (int i = 0; i < noOfTemp; i++) {
-			sprintf(_tmp, "T%d:%4.1f", i, results[i]);
-			printf("%s\n",_tmp);
+
+		for (int i = 0; i < noOfTempSensors; i++) {
+			sprintf(_tmp, "T%d:%4.1f E:%d", i, results[i], errors[i]);
 			u8g2_DrawStr(&_u8g2, 0, 30+(i*11), _tmp);
 			displayUpdate();
 
-			sprintf(_topic, "/kontor/temperature/%d/", i);
+			sprintf(_topic, "/kontor/temperature/%s/", ds18b20GetDeviceSerialNumber(i));
 			sprintf(_tmp, "%4.1f", results[i]);
 			esp_mqtt_client_publish(client, _topic, _tmp, 0,0,0);
 		}
