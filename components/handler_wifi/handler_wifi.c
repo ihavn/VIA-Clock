@@ -21,6 +21,8 @@
 
 #include "sdkconfig.h"
 
+static void wifiHandlerTask( void * pvParameters ) ;
+
 
 /* Uses WiFi configuration that you can set via 'make menuconfig'.
 
@@ -134,5 +136,23 @@ void wifiInit() {
 	int8_t rssi;
 	wifiGetRSSI(&rssi);
 	ESP_LOGI(TAG, "RSSI:%d", rssi);
+
+	TaskHandle_t xHandle = NULL;
+
+	xTaskCreate( wifiHandlerTask, "WIFI_HANDLER", 2048, NULL, tskIDLE_PRIORITY, &xHandle );
+	    configASSERT( xHandle );
+
+	 // Use the handle to delete the task.
+	    if( xHandle != NULL )
+	    {
+	     vTaskDelete( xHandle );
+	    }
+}
+
+// --------------------------------------------------------
+static void wifiHandlerTask( void * pvParameters ) {
+	for (;;) {
+		vTaskDelay(2000/portTICK_PERIOD_MS);
+	}
 }
 
