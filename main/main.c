@@ -4,6 +4,8 @@
 #include <stdio.h>
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
+#include "freertos/timers.h"
+#include "freertos/semphr.h"
 #include "esp_system.h"
 #include "esp_spi_flash.h"
 #include "esp_log.h"
@@ -14,7 +16,24 @@
 #include "handler_wifi.h"
 #include "handler_mqtt.h"
 
+#include "ldr_interface.h"
+
+#define pumpSamplePeriod  pdMS_TO_TICKS(1*60*1000) // 1 minute
+
 static const char *TAG = "MAIN";
+static SemaphoreHandle_t pumpSemaphore = NULL;
+
+// Call back to timer that controls how often the pump data is sampled
+static void pumpTimerCallback(TimerHandle_t xTimer) {
+	xSemaphoreGive(pumpSemaphore);
+}
+
+static void initTimer(void) {
+	TimerHandle_t timerHandle = xTimerCreate("PumpTimer", pumpSamplePeriod,
+	pdTRUE, (void*) 0, pumpTimerCallback);
+
+	xTimerStart(timerHandle, pdMS_TO_TICKS(500));
+}
 
 void app_main() {
 	printf("Hello world!\n");
@@ -32,43 +51,31 @@ void app_main() {
 			(chip_info.features & CHIP_FEATURE_EMB_FLASH) ?
 					"embedded" : "external");
 
-	// Needed by WIFI
-    nvs_flash_init();
+	pumpSemaphore = xSemaphoreCreateBinary();
+	ldrInit(pumpSemaphore);
 
+// Needed by WIFI
+	nvs_flash_init();
 
 	u8g2_t _u8g2 = displayInit();
-	//displayTest();
+//displayTest();
 	displayPowerUp();
 	u8g2_SetFont(&_u8g2, u8g2_font_profont12_mr);
 
 	char _tmp[30];
 
-	for (int i = 0; i <= 2; i++) {
-		printf("Im here!!\n");
-		sprintf(_tmp, "%5d %%", i * 10);
-		u8g2_DrawStr(&_u8g2, 50, 15, _tmp);
-		displayBatterySymbol(111, 3, i * 10);
-		displayWifiSymbol(0, 2, i * 10);
-		vTaskDelay(1000 / portTICK_PERIOD_MS);
-	}
-
-	for (int i = 2; i > 0; i--) {
-		printf("And here!!\n");
-		sprintf(_tmp, "%5d %%", i * 10);
-		u8g2_DrawStr(&_u8g2,50, 15, _tmp);
-		displayBatterySymbol(111, 3, i * 10);
-		displayWifiSymbol(0, 2, i * 10);
-		vTaskDelay(1000 / portTICK_PERIOD_MS);
-	}
-
-	// Start WIFI task and let it connect to AP
+// Start WIFI task and let it connect to AP
 	wifiInit();
+
+// Start MQTT Client
 	mqttInit();
 
+// Draw battery symbol
 	char ssid[20];
-
 	wifiGetSSID(ssid);
-	u8g2_DrawStr(&_u8g2, 5+DISPLAY_WIFI_SYMBOL_WIDTH, 15, ssid);
+	u8g2_DrawStr(&_u8g2, 5 + DISPLAY_WIFI_SYMBOL_WIDTH, 15, ssid);
+
+	displayBatterySymbol(111, 3, 100);
 	displayUpdate();
 
 	ds18b20Init();
@@ -81,22 +88,39 @@ void app_main() {
 	float results[DS18B20_MAX_DEVICES];
 	DS18B20_ERROR errors[DS18B20_MAX_DEVICES] = { 0 };
 
-	for (;;) {
+	int _lastPumpState = -1;
 
+	initTimer();
+
+	for (;;) {
 		ds18b20GetAllTemperatures(results, errors);
 
 		for (int i = 0; i < noOfTempSensors; i++) {
-			sprintf(_tmp, "T%d:%4.1f E:%d", i, results[i], errors[i]);
-			u8g2_DrawStr(&_u8g2, 0, 30+(i*11), _tmp);
-			displayUpdate();
+			sprintf(_tmp, "T%d:%4.1f", i, results[i]);
+			u8g2_DrawStr(&_u8g2, 0, 30 + (i * 11), _tmp);
 
-			sprintf(_topic, "/kontor/temperature/%s/", ds18b20GetDeviceSerialNumber(i));
+			sprintf(_topic, "/pump/temperature/%s/",
+					ds18b20GetDeviceSerialNumber(i));
 			sprintf(_tmp, "%4.1f", results[i]);
-			esp_mqtt_client_publish(client, _topic, _tmp, 0,0,0);
+			esp_mqtt_client_publish(client, _topic, _tmp, 0, 0, 0);
+		}
+
+		int _ldr = ldrSeeLight();
+		if (_lastPumpState != _ldr) {
+			sprintf(_topic, "/pump/state/");
+			sprintf(_tmp, "%d", ldrSeeLight());
+			esp_mqtt_client_publish(client, _topic, _tmp, 0, 0, 0);
+
+			sprintf(_tmp, "Pump: %s", (_ldr ? "ON " : "OFF"));
+			u8g2_DrawStr(&_u8g2, 70, 30, _tmp);
+
+			_lastPumpState = _ldr;
 		}
 
 		wifiGetRSSIPercent(&rssiPercent);
 		displayWifiSymbol(0, 2, rssiPercent);
 		displayUpdate();
+
+		xSemaphoreTake(pumpSemaphore, portMAX_DELAY);
 	}
 }
