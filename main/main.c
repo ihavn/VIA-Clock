@@ -26,6 +26,7 @@ static const int _stepperPattern[8][4] = { { 0, 1, 1, 0 }, { 1, 1, 1, 0 }, { 1,
 
 static void IRAM_ATTR timer_tg0_isr(void *para) {
 	static int _step = 0;
+	static uint16_t _counter = 0;
 
 	int timer_idx = (int) para;
 
@@ -42,15 +43,16 @@ static void IRAM_ATTR timer_tg0_isr(void *para) {
 	 we need enable it again, so it is triggered the next time */
 	TIMERG0.hw_timer[timer_idx].config.alarm_en = TIMER_ALARM_EN;
 
-	//----- HERE EVERY #uS -----
-	//Toggle a pin so we can verify the timer is working using an oscilloscope
-	//Toggle the pins state
+	if (_counter++ < 4076/60) {
 	gpio_set_level(GPIO_NUM_16, _stepperPattern[_step][0]);
 	gpio_set_level(GPIO_NUM_2, _stepperPattern[_step][1]);
 	gpio_set_level(GPIO_NUM_14, _stepperPattern[_step][2]);
 	gpio_set_level(GPIO_NUM_15, _stepperPattern[_step][3]);
 
 	_step = (_step + 1) % 8;
+	} else if (_counter > 500 ) {
+		_counter = 0;
+	}
 }
 
 static void example_tg0_timer_init(int timer_idx,
@@ -126,15 +128,13 @@ void app_main() {
 	uint8_t rssiPercent = 0;
 
 	example_tg0_timer_init(TIMER_0, 1, 100);
-	int io_state = 0;
+
 	for (;;) {
 		wifiGetRSSIPercent(&rssiPercent);
 		displayWifiSymbol(0, 2, rssiPercent);
 		displayUpdate();
 
 		vTaskDelay(500 / portTICK_PERIOD_MS);
-		io_state ^= 1;
-		//gpio_set_level(GPIO_NUM_2, io_state);
 	}
 
 }
